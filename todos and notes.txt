@@ -1,0 +1,3 @@
+- Signup: validate email input, use a verification link and create the user after the link is verified (or disable and re-enable?)
+
+- Implement logo images

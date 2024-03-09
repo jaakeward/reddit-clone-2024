@@ -1,78 +1,64 @@
-import React from "react";
-import { Box, Button, Flex, Icon, Text, Image } from "@chakra-ui/react";
-import { FaReddit } from "react-icons/fa";
-import { Community, communityState } from "../../atoms/communitiesAtom";
-import useCommunityData from "../../hooks/useCommunityData";
-import { useSetRecoilState } from "recoil";
+import { Box, Button, Flex, Icon, Text, Image, Spinner } from '@chakra-ui/react';
+import React from 'react';
+import { FaReddit } from 'react-icons/fa';
+import useCommunityData from '@/src/hooks/useCommunityData'
+import { useRouter } from 'next/router';
 
 type HeaderProps = {
-  communityData: Community;
 };
 
-const Header: React.FC<HeaderProps> = ({ communityData }) => {
-  /**
-   * !!!Don't pass communityData boolean until the end
-   * It's a small optimization!!!
-   */
-  const { communityStateValue, loading, error, onJoinLeaveCommunity } =
-    useCommunityData(!!communityData);
-  const isJoined = !!communityStateValue.mySnippets.find(
-    (item) => item.communityId === communityData.id
-  );
-
-  return (
-    <Flex direction="column" width="100%" height="146px">
-      <Box height="50%" bg="blue.400" />
-      <Flex justifyContent="center" bg="white" height="50%">
-        <Flex width="95%" maxWidth="860px">
-          {/* IMAGE URL IS ADDED AT THE VERY END BEFORE DUMMY DATA - USE ICON AT FIRST */}
-          {communityStateValue.currentCommunity.imageURL ? (
-            <Image
-              borderRadius="full"
-              boxSize="66px"
-              src={communityStateValue.currentCommunity.imageURL}
-              alt="Dan Abramov"
-              position="relative"
-              top={-3}
-              color="blue.500"
-              border="4px solid white"
-            />
-          ) : (
-            <Icon
-              as={FaReddit}
-              fontSize={64}
-              position="relative"
-              top={-3}
-              color="blue.500"
-              border="4px solid white"
-              borderRadius="50%"
-            />
-          )}
-          <Flex padding="10px 16px">
-            <Flex direction="column" mr={6}>
-              <Text fontWeight={800} fontSize="16pt">
-                {communityData.id}
-              </Text>
-              <Text fontWeight={600} fontSize="10pt" color="gray.400">
-                r/{communityData.id}
-              </Text>
-            </Flex>
-            <Flex>
-              <Button
-                variant={isJoined ? "outline" : "solid"}
-                height="30px"
-                pr={6}
-                pl={6}
-                onClick={() => onJoinLeaveCommunity(communityData, isJoined)}
-                isLoading={loading}
-              >
-                {isJoined ? "Joined" : "Join"}
-              </Button>
-            </Flex>
-          </Flex>
-        </Flex>
-      </Flex>
-    </Flex>
-  );
-};
+const Header: React.FC<HeaderProps> = () => {
+    const { communityStateValue, onJoinOrLeaveCommunity, loading } = useCommunityData();
+    const router = useRouter();
+    const isJoined = communityStateValue ? communityStateValue.mySnippets.some(
+        item => item.communityId === communityStateValue.currentCommunity?.communityId
+    ) : false;
+    return (
+        <>
+            {communityStateValue.currentCommunity ?
+                (<Flex direction={'column'} width={'100%'} height={'146px'}>
+                    <Box height={'50%'} bg={'blue.400'} />
+                    <Flex justify={'center'} bg={'white'} flexGrow={1}>
+                        <Flex width={'95%'} maxWidth={'860px'}>
+                            {communityStateValue.currentCommunity?.imageURL ?
+                                (<Image src={communityStateValue.currentCommunity?.imageURL}
+                                    onClick={() => { router.push(`/r/${communityStateValue.currentCommunity?.communityId}`) }}
+                                    position={'relative'}
+                                    cursor={'pointer'}
+                                    top={-3}
+                                    color={'blue.500'}
+                                    border={'4px solid white'}
+                                    boxSize={'66px'}
+                                    alt='Community Image'
+                                    borderRadius={'50%'} />) : (
+                                    < Icon as={FaReddit}
+                                        cursor={'pointer'}
+                                        onClick={() => { router.push(`/r/${communityStateValue.currentCommunity?.communityId}`) }}
+                                        fontSize={64}
+                                        position={'relative'}
+                                        top={-3}
+                                        color={'blue.500'}
+                                        border={'4px solid white'}
+                                        borderRadius={'50%'} />)
+                            }
+                            <Flex padding={'10px 16px'}>
+                                <Flex direction={'column'} mr={6}>
+                                    <Text fontWeight={800} fontSize={'16pt'}>
+                                        {communityStateValue.currentCommunity?.communityId}
+                                    </Text>
+                                    <Text fontWeight={600} fontSize={'10pt'} color={'gray.400'}>
+                                        r/{communityStateValue.currentCommunity?.communityId}
+                                    </Text>
+                                </Flex>
+                                <Button
+                                    variant={isJoined ? 'outline' : 'solid'}
+                                    onClick={() => onJoinOrLeaveCommunity(communityStateValue.currentCommunity!, isJoined)}
+                                    isLoading={loading}>
+                                    {isJoined ? "Joined" : "Join"}</Button>
+                            </Flex>
+                        </Flex>
+                    </Flex>
+                </Flex >) : <><Spinner /></>}
+        </>)
+}
 export default Header;

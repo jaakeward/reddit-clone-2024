@@ -1,21 +1,18 @@
-import { ChakraProvider } from "@chakra-ui/react";
+import "@/src/styles/globals.css";
+import { ChakraProvider } from '@chakra-ui/react'
+import { theme } from '../chakra/theme';
+import Layout from "../components/Layout/Layout";
 import type { AppProps } from "next/app";
 import { RecoilRoot } from "recoil";
-import { theme } from "../chakra/theme";
-import Layout from "../components/Layout";
-import "../firebase/clientApp";
-import "../styles/globals.css";
 
-function MyApp({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps }: AppProps) {
   return (
-    <RecoilRoot>
+    <RecoilRoot >
       <ChakraProvider theme={theme}>
         <Layout>
           <Component {...pageProps} />
         </Layout>
       </ChakraProvider>
-    </RecoilRoot>
+    </RecoilRoot >
   );
 }
-
-export default MyApp;

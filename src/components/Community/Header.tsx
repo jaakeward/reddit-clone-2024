@@ -15,8 +15,8 @@ const Header: React.FC<HeaderProps> = () => {
     ) : false;
     return (
         <>
-            {communityStateValue.currentCommunity ?
-                (<Flex direction={'column'} width={'100%'} height={'146px'}>
+            {communityStateValue.currentCommunity?.communityId !== undefined ?
+                (<Flex direction={'column'} width={'100%'} height={router.query.pid ? '100px' : '140px'}>
                     <Box height={'50%'} bg={'blue.400'} />
                     <Flex justify={'center'} bg={'white'} flexGrow={1}>
                         <Flex width={'95%'} maxWidth={'860px'}>

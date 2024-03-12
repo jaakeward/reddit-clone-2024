@@ -23,8 +23,8 @@ const Navbar: React.FC = () => {
                 mr={{ base: 0, md: 2 }}>
                 <a href='http://localhost:3000/'>
                     <Flex>
-                        <Image src="images/navImg.png" height="40px" />
-                        <Image src="images/navImg2.png" height="30px" display={{ base: "none", md: "unset" }} />
+                        <Image src="images/redditFace.svg" height="40px" />
+                        <Image src="images/redditText.svg" height="30px" display={{ base: "none", md: "unset" }} />
                     </Flex>
                 </a>
             </Flex>

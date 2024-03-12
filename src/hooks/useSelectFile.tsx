@@ -14,7 +14,6 @@ const useSelectFile = () => {
                 setSelectedFile(readerEvent.target.result as string);
             }
         }
-
     };
     return {
         selectedFile, setSelectedFile, onSelectFile

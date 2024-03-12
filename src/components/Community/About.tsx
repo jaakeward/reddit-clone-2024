@@ -6,8 +6,9 @@ import useCommunityData from '@/src/hooks/useCommunityData';
 import useSelectFile from '@/src/hooks/useSelectFile';
 import { Box, Button, Divider, Flex, Icon, Link, Stack, Text, Image, Spinner, Input } from '@chakra-ui/react';
 import { updateCurrentUser } from 'firebase/auth';
-import { updateDoc, doc } from 'firebase/firestore';
-import { getDownloadURL, ref } from 'firebase/storage';
+import firebase from 'firebase/compat/app';
+import { updateDoc, doc, getDoc } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import moment from 'moment';
 import { useRouter } from 'next/router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -15,6 +16,9 @@ import { FaReddit } from 'react-icons/fa';
 import { HiOutlineDotsHorizontal } from 'react-icons/hi';
 import { RiCakeLine } from 'react-icons/ri';
 import { useRecoilState, useSetRecoilState } from 'recoil';
+import TopCommunities from './TopCommunities';
+import PersonalHome from './PersonalHome';
+import Premium from './Premium';
 
 type AboutProps = {
 };
@@ -28,10 +32,11 @@ const About: React.FC<AboutProps> = ({ }) => {
 
     const onUploadImage = async () => {
         try {
-            if (communityStateValue.currentCommunity) {
+            if (communityStateValue.currentCommunity?.communityId) {
                 setUploadingImage(true);
-                const imageRef = ref(storage, `communities/${communityStateValue.currentCommunity!.communityId}/image`);
-                const downloadURL = await getDownloadURL(imageRef);
+                const communityRef = ref(storage, `communities/${communityStateValue.currentCommunity!.communityId}`);
+                console.log(communityRef.toString());
+                const downloadURL = await getDownloadURL(ref(storage, `gs://reddit-clone-a6461.appspot.com/communities/${communityStateValue.currentCommunity!.communityId}/image`));
                 await updateDoc(doc(firestore, 'communities', communityStateValue.currentCommunity!.communityId), {
                     imageURL: downloadURL
                 })
@@ -43,7 +48,7 @@ const About: React.FC<AboutProps> = ({ }) => {
                     } as Community
                 }))
             }
-        } catch (error) { console.error(); }
+        } catch (error) { console.log(error); }
         setUploadingImage(false);
     };
 
@@ -58,7 +63,7 @@ const About: React.FC<AboutProps> = ({ }) => {
                     color={'white'}
                     p={3}
                     borderRadius={4}>
-                    <Text fontSize={'10pt'} fontWeight={700}>About Community</Text>
+                    <Text fontSize={'10pt'} fontWeight={700}>{communityStateValue.currentCommunity.communityId ? `About r/${communityStateValue.currentCommunity.communityId}` : 'About Community'}</Text>
                     <Icon as={HiOutlineDotsHorizontal} />
                 </Flex>
                 {/* Community Info */}
@@ -96,7 +101,7 @@ const About: React.FC<AboutProps> = ({ }) => {
                         </Link>
                         <Divider />
                         {/* Admin Options */}
-                        {isModerator &&
+                        {communityStateValue.mySnippets.find(item => (item.communityId === communityStateValue.currentCommunity?.communityId))?.isModerator &&
                             <>
                                 <Stack spacing={1} fontSize={'10pt'} >
                                     <Text fontWeight={600}>
@@ -139,7 +144,12 @@ const About: React.FC<AboutProps> = ({ }) => {
                     </Stack>
                 </Flex>
             </Box >
-        </>) : <></>
+        </>) :
+            <Stack>
+                <TopCommunities />
+                <Premium />
+                <PersonalHome />
+            </Stack>
         }</>
     )
 }

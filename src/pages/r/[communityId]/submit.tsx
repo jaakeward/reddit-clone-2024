@@ -7,7 +7,8 @@ import { auth } from '@/src/firebase/clientApp';
 import useCommunityData from '@/src/hooks/useCommunityData';
 import { Box, Spinner, Text } from '@chakra-ui/react';
 import { getServerSideProps } from 'next/dist/build/templates/pages';
-import React from 'react';
+import { useRouter } from 'next/router';
+import React, { useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 
 type submitProps = {
@@ -16,7 +17,17 @@ type submitProps = {
 
 const submit: React.FC<submitProps> = () => {
     const user = auth.currentUser;
-    const communityStateValue = useRecoilValue(communityState);
+    const { communityStateValue, getCommunityData } = useCommunityData();
+    const router = useRouter();
+    useEffect(() => {
+        console.log(router.query[1]);
+        const { communityId } = router.query;
+        if (communityId !== undefined) {
+            getCommunityData(communityId as string);
+        }
+        getCommunityData(router.query[1] as string);
+
+    }, [auth.currentUser?.uid])
     return (
         <>
             <Header />

@@ -9,40 +9,32 @@ import { Flex, Stack } from '@chakra-ui/react';
 import PostLoader from './PostLoader';
 import useCommunityData from '@/src/hooks/useCommunityData';
 import { useRouter } from 'next/router';
+import { onAuthStateChanged } from 'firebase/auth';
 
 type PostsProps = {
-    communityData: Community,
 };
 
-const Posts: React.FC<PostsProps> = ({ communityData }) => {
-    const router = useRouter();
-    const authUser = auth.currentUser;
-    const { postStateValue, setPostStateValue, onVote, onDeletePost, onSelectPost, loading, getPosts } = usePosts();
+const Posts: React.FC<PostsProps> = () => {
+    const { postStateValue, onVote, onDeletePost, onSelectPost, loading, getPosts } = usePosts();
     const { communityStateValue } = useCommunityData();
-
-    useEffect(() => {
-        console.log('useEffect: gettings posts...');
-        getPosts();
-    }, [communityStateValue.currentCommunity, router.query]);
 
     return (
         <Flex width={'100%'} align={'center'}>
             <>
                 <Stack spacing={3} justify={'center'} width={'100%'}>
-                    {postStateValue.posts && postStateValue.posts.map((item) =>
-                        <>
+                    {postStateValue.posts && postStateValue.posts.map((item) => {
+                        return (<>
                             <PostItem key={item!.id}
                                 post={item!}
-                                userIsCreator={authUser?.uid === item!.creatorId}
-                                userVoteValue={postStateValue.postVotes.find(
-                                    (vote: PostVote) => vote?.id === item.id)?.voteValue ?
-                                    postStateValue.postVotes.find(
-                                        (vote: PostVote) => vote?.id === item.id)?.voteValue : 0}
+                                userIsCreator={auth.currentUser?.uid === item!.creatorId}
+                                userVoteValue={(postStateValue.postVotes.find(vote => vote?.postId === item.id)?.voteValue ?
+                                    postStateValue.postVotes.find((vote: PostVote) => vote.postId === item.id)!.voteValue : 0)}
                                 onVote={onVote}
                                 onSelectPost={onSelectPost}
                                 onDeletePost={onDeletePost}
                             />
-                        </>
+                        </>)
+                    }
                     )}
                 </Stack>
             </>

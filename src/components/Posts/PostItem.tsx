@@ -1,10 +1,10 @@
-import { Community } from '@/src/atoms/communitiesAtom';
 import { Post } from '@/src/atoms/postsAtom';
-import { Flex, Icon, Stack, Text, Image, Skeleton, Spinner } from '@chakra-ui/react';
+import { Flex, Icon, Stack, Text, Image, Skeleton, Spinner, Link } from '@chakra-ui/react';
 import moment from 'moment';
 import React, { useState } from 'react';
 import { AiOutlineDelete } from 'react-icons/ai';
 import { BsChat } from 'react-icons/bs';
+import { FaReddit } from 'react-icons/fa';
 import { FcClock } from 'react-icons/fc';
 import { IoArrowDownCircleOutline, IoArrowDownCircleSharp, IoArrowRedoOutline, IoArrowUpCircleOutline, IoArrowUpCircleSharp, IoBookmarkOutline } from 'react-icons/io5';
 
@@ -15,6 +15,7 @@ type PostItemProps = {
     onVote: (post: Post, voteStatus: number, communityId: string) => void;
     onDeletePost: (post: Post) => {};
     onSelectPost: (post: Post) => {};
+    homePage?: boolean;
 };
 
 const PostItem: React.FC<PostItemProps> = ({
@@ -23,7 +24,8 @@ const PostItem: React.FC<PostItemProps> = ({
     userVoteValue,
     onVote,
     onDeletePost,
-    onSelectPost
+    onSelectPost,
+    homePage,
 }) => {
     const [loadingImage, setLoadingImage] = useState(false);
     const [error, setError] = useState('');
@@ -51,7 +53,7 @@ const PostItem: React.FC<PostItemProps> = ({
 
     return (
         <>{
-            (loadingSelect && post?.creatorDisplayName) ? <Spinner /> : (<Flex
+            (loadingSelect && post?.createdAt) ? <Spinner /> : (<Flex
                 bg={'white'}
                 borderColor={'gray.300'}
                 borderRadius={4}
@@ -88,6 +90,28 @@ const PostItem: React.FC<PostItemProps> = ({
                                 spacing={0.6}
                                 align={'center'}
                                 fontSize={'9pt'} >
+                                {/* Home Page Check */}
+                                {homePage && (
+                                    <>
+                                        {post.imageURL ? (
+                                            <Image src={post.imageURL}
+                                                borderRadius={'full'}
+                                                boxSize={'18px'} mr={2} />
+                                        ) : (
+                                            <Icon as={FaReddit}
+                                                fontSize='18pt'
+                                                mr={1}
+                                                color={'blue.500'}
+                                            />
+                                        )}
+                                        <Link href={`r/${post.communityId}`}
+                                            onClick={(event) => event.stopPropagation()}
+                                            _hover={{ textDecoration: 'underline' }}
+                                            mr={2}>
+                                            r/{post.communityId}
+                                        </Link>
+                                    </>
+                                )}
                                 <Text>Posted by u/{post.creatorDisplayName} <Icon as={FcClock} color={'gray.500'} /> {moment(new Date(post.createdAt.seconds * 1000)).fromNow()}</Text>
                             </Stack>
                             <Text fontSize={'12pt'} fontWeight={600}>

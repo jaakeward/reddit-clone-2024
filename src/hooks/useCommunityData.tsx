@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { Community, CommunitySnippet, communityState } from '../atoms/communitiesAtom'
 import { auth, firestore } from '@/src/firebase/clientApp';
@@ -19,24 +19,24 @@ const useCommunityData = () => {
     const [loadingData, setLoadingData] = useState(false);
 
     const getCommunityData = async (communityId: string) => {
-        if (!auth.currentUser) {
-            setAuthModalState({ open: true, view: 'login' });
-            return;
-        }
+        if (communityId === undefined) { return; }
         try {
             console.log('Resolving community data...' + communityId);
-            if (communityStateValue.currentCommunity?.communityId !== communityId) {
+            if (communityStateValue.currentCommunity?.communityId !== communityId !== undefined) {
                 console.log('getting community as \'' + communityId + '\'');
                 const communityDocRef = doc(firestore, 'communities', communityId);
                 const communityDoc = await getDoc(communityDocRef);
-                console.log('got communityDoc as ' + communityDoc.data());
+                const communityData = { ...communityDoc.data() };
+                if (!auth.currentUser && (communityData.privacyType !== 'public')) {
+                    setAuthModalState({ open: true, view: 'login' });
+                    return;
+                }
                 setCommunityStateValue(prev => ({
                     ...prev,
                     currentCommunity: { communityId: communityDoc.id, ...communityDoc.data() } as Community
                 }));
-                console.log('set community state to: ' + communityStateValue.currentCommunity?.communityId);
+                console.log('set community state to: ' + communityId);
                 setLoadingData(false);
-                return true;
             }
             else {
                 console.log(communityId);
@@ -105,7 +105,7 @@ const useCommunityData = () => {
         }
         const communityCollection = collection(firestore, `users/${auth.currentUser?.uid}/communitySnippets/`);
         const snippetDocs = await getDocs(communityCollection);
-        const snippets = snippetDocs.docs.map((doc) => ({ communityId: doc.id, ...doc.data() }));
+        const snippets = snippetDocs.docs.map((doc) => ({ communityId: doc.id, ...doc.data() } as CommunitySnippet));
         setCommunityStateValue(prev => ({
             ...prev,
             mySnippets: snippets as CommunitySnippet[],
@@ -114,7 +114,7 @@ const useCommunityData = () => {
     }
 
     useEffect(() => {
-        if (communityStateValue.currentCommunity) {
+        if (communityStateValue.currentCommunity?.communityId) {
             const userSnippet = communityStateValue.mySnippets.find(item => (item.communityId === communityStateValue.currentCommunity?.communityId))
             setIsModerator(userSnippet?.isModerator as boolean);
         }
@@ -122,22 +122,29 @@ const useCommunityData = () => {
 
     useEffect(() => {
         onAuthStateChanged(auth, async () => {
-            getMySnippets();
-            const { communityId } = router.query;
-            if (communityId !== communityStateValue.currentCommunity?.communityId) {
-                getCommunityData(communityId as string);
+            if (auth.currentUser) {
+                getMySnippets();
+                let communityId = router.query[1];
+                if ((communityId !== undefined) && (communityId !== communityStateValue.currentCommunity?.communityId)) {
+                    getCommunityData(communityId as string);
+                }
             }
         });
     }, [authUserState, communityStateValue.currentCommunity !== undefined]);
+
+    useEffect(() => {
+        if (router.query.communityId) {
+            getCommunityData(router.query.communityId as string)
+        }
+    }, [])
 
     return {
         communityStateValue,
         onJoinOrLeaveCommunity,
         loading,
         setCommunityStateValue,
-        isModerator
+        isModerator,
+        getCommunityData
     };
 };
 export default useCommunityData;
-
-

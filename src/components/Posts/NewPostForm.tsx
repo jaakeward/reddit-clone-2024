@@ -8,8 +8,7 @@ import TextInputs from './PostForm/TextInputs';
 import ImageUpload from './PostForm/ImageUpload';
 import { Post } from '@/src/atoms/postsAtom';
 import { useRouter } from 'next/router';
-import { authUserState } from '@/src/atoms/authUserAtom';
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import { authModalState } from '@/src/atoms/authModalAtom';
 import { Timestamp, addDoc, collection, updateDoc } from 'firebase/firestore';
 import { auth, firestore, storage } from '@/src/firebase/clientApp';
@@ -48,7 +47,6 @@ export type TabItemType = {
 };
 
 const NewPostForm: React.FC<NewPostFormProps> = () => {
-    const authUser = useRecoilState(authUserState)
     const router = useRouter();
     const setAuthModalState = useSetRecoilState(authModalState);
     const [selectedTab, setSelectedTab] = useState(formTabs[0].title);
@@ -68,7 +66,7 @@ const NewPostForm: React.FC<NewPostFormProps> = () => {
     };
 
     const handleCreatePost = async () => {
-        if (!authUser) {
+        if (!auth.currentUser) {
             setAuthModalState({ open: true, view: 'login' });
             return;
         }
